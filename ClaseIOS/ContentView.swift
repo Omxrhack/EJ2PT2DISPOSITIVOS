@@ -8,16 +8,21 @@
 import SwiftUI
 
 struct ContentView: View {
+    @State private var cards: [CardItem] = []
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        NavigationStack {
+            List(cards) { card in
+                NavigationLink(destination: CardDetalle(item: card)) {
+                    CardView(item: card)
+                }
+            }
+            .navigationTitle("Mis Cards")
+            .onAppear { cards = loadCards() }
         }
-        .padding()
     }
 }
+
+    
 
 #Preview {
     ContentView()
