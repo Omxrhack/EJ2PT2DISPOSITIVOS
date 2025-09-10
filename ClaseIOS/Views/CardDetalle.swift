@@ -11,15 +11,23 @@ struct CardDetalle: View {
     
     var body: some View {
         VStack(spacing: 16) {
+            Image(item.imageName)
+                .resizable()
+                .frame(width: 300, height: 300)
+                .cornerRadius(20)
+                .padding()
             Text(item.title)
                 .font(.largeTitle)
                 .bold()
-            Text(item.subtitle)
+            Text(item.description)
                 .font(.title3)
                 .foregroundColor(.secondary)
+                
+                .padding()
          
         }
         .padding()
         .navigationTitle("Detalle")
     }
 }
+

@@ -8,28 +8,49 @@
 
 import SwiftUI
 
-// Modelo simple
+
 struct CardItem: Identifiable, Codable {
-    let id: UUID
+    let id: String
     let title: String
     let subtitle: String
+    let imageName: String
+    let description: String
 }
 
-// Ejemplo de JSON
+
 let sampleJSON = """
 [
   {
-    "id": "9F1B8F1A-9C3E-4C29-A4D0-1B7C6E6C3A6A",
-    "title": "Café artesanal",
-    "subtitle": "Tostado medio"
+    "id": "1",
+    "title": "Twitter",
+    "subtitle": "Red social",
+    "imageName": "twitter",
+    "description": "Plataforma para compartir ideas rápidas, noticias y tendencias en tiempo real."
   },
   {
-    "id": "2E4D7A10-3B6C-41E9-BE18-4E7C8C2B9D20",
-    "title": "Libro SwiftUI",
-    "subtitle": "UI modernas"
+    "id": "2",
+    "title": "Facebook",
+    "subtitle": "Red social",
+    "imageName": "facebook",
+    "description": "Red social enfocada en conectar amigos, familiares y comunidades en línea."
+  },
+  {
+    "id": "3",
+    "title": "Reddit",
+    "subtitle": "Red social",
+    "imageName": "reddit",
+    "description": "Foro global donde los usuarios comparten noticias, debates y comunidades temáticas."
+  },
+  {
+    "id": "4",
+    "title": "Instagram",
+    "subtitle": "Red social",
+    "imageName": "instagram",
+    "description": "Aplicación centrada en fotos y videos, ideal para contenido visual y creativo."
   }
 ]
 """
+
 
 // Función para cargar JSON
 func loadCards() -> [CardItem] {
@@ -41,37 +62,76 @@ func loadCards() -> [CardItem] {
 // Vista de Card
 struct CardView: View {
     let item: CardItem
+    
     var body: some View {
-        HStack{
+        HStack(spacing: 12) {
+            Image(item.imageName)
+                .resizable()
+                .scaledToFill()
+                .frame(width: 50, height: 50)
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+            
             VStack(alignment: .leading, spacing: 4) {
                 Text(item.title)
                     .font(.headline)
                 Text(item.subtitle)
                     .font(.subheadline)
                     .foregroundColor(.secondary)
-               
-               
             }
-            .padding()
-            .frame(maxWidth: .infinity)
-            .background(RoundedRectangle(cornerRadius: 12).fill(Color(.systemGray6)))
-           
-          
         }
+    
+        .frame(maxWidth: .infinity, alignment: Alignment.leading)
+        .padding(10)
+        .background(RoundedRectangle(cornerRadius: 12).fill(Color(.systemGray6)))
     }
 }
+
+
 
 // Lista de Cards
 struct CardsListView: View {
-    @State private var cards: [CardItem] = []
-
-    var body: some View {
-        List(cards) { card in
-            CardView(item: card)
+    @State private var cards: [CardItem] = loadCards()
+    @StateObject private var store = ConfigStore()
+    
+    var filteredCards: [CardItem] {
+        var result = cards
+        
+        // Filtrar si solo fotos
+        if store.soloFotos {
+            result = result.filter { !$0.imageName.isEmpty }
         }
-        .onAppear { cards = loadCards() }
+        
+        // Ordenar según preferencia
+        switch store.orden {
+        case .titulo:
+            result = result.sorted { $0.title < $1.title }
+        case .subtitulo:
+            result = result.sorted { $0.subtitle < $1.subtitle }
+        }
+        
+        // Limitar al número máximo
+        return Array(result.prefix(store.maxItems))
+    }
+    
+    var body: some View {
+        NavigationStack {
+            List(filteredCards) { card in
+                NavigationLink(destination: CardDetalle(item: card)) {
+                    CardView(item: card)
+                }
+            }
+            .navigationTitle("Mis Cards")
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    NavigationLink(destination: ConfigView(store: store)) {
+                        Image(systemName: "gear")
+                    }
+                }
+            }
+        }
     }
 }
+
 
 #Preview {
     CardsListView()
